@@ -5,24 +5,23 @@ rule(n(A),[adj(B^A),n(B)]).
 
 rule(pp(C),[p(A^B^C),np(A^B)]).
 rule(vp(A),[iv(A)]).
-rule(vp(A^B),[tv(A^C),np(C^B)]).
+%rule(vp(A^B),[tv(A^C),np(C^B)]).
 %rule(s(B),[np(A^B),vp(A)]).
 
 
-%Revised Verbal rules
-rule(vp(X^K,[]),[tv((X^Y),[]),np(Y^K)]).
-rule(vp(X,WH),[iv(X,WH)]).
 
-%New Verbal Rules
-rule(vp(K,[WH]),[tv(Y,[WH]),np(Y^K)]).
 
-rule(s(X,[WH]),[vp(X,[WH])]).
 rule(s(Y),[np(X^Y),vp(X,[])]).
-rule(s(Y,WH),[np(X^Y),vp(X,WH)]).
 
 
-rule(pv(X^Y,[]),[tv(X^Y,[]),vacp]).
-rule(vp(X^Z,[]),[pv(X^Y,[]),np(Y^Z)]).
+
+%rule(pv(X^Y,[]),[tv(X^Y,[]),vacp]).
+%rule(vp(X^Z,[]),[pv(X^Y,[]),np(Y^Z)]).
+%rule(pp(A^B),[vacp,np(A^B)]).
+%rule(vp(X^Y),[
+%rule(vp(X^Z,[]),[pv(X^Y,[]),np(Y^Z)]).
+%(VP; ..., W H) Ñ (PV; ...) (PP; ... W H)
+
 
 rule(vp(X^W^Z),[dtv(X^Y^Y1),np(Y^W),np(Y1^Z)]).
 rule(vp(X^W),[vp(X^Y),pp(Y^W)]).
@@ -35,8 +34,24 @@ rule(np((X^P)^exists(X,(and(P,Q)))),[n(X^Q)]).
 rule(q(Y),[whpr(X^Y),vp(X)]).
 rule(q(X),[whpr(X^Y),aux([]),vp(Y)]).
 
+%(RC; φ, [x]) --> REL (S; φ, [x])
+%Complement Interrogatives
+%(IV; λx.φ, [y]) Ñ (TV; λx.λy.φ, [ ])
+rule(iv(X^P,[Y]),[tv(X^Y^P,[])]).
+%Subject Interrogatives
+%(TV; λy.φ, [x]) Ñ (TV; λx.λy.φ, [ ])
+rule(tv(Y^P,[X]),[tv(X^Y^P,[])]).
 
-%wh question rules
+%Revised Verbal rules
+rule(vp(X^K,[]),[tv((X^Y),[]),np(Y^K)]).
+rule(vp(X,WH),[iv(X,WH)]).
+rule(s(Y,WH),[np(X^Y),vp(X,WH)]).
+
+%New Verbal Rules
+rule(vp(K,[WH]),[tv(Y,[WH]),np(Y^K)]).
+rule(s(X,[WH]),[vp(X,[WH])]).
+
+%%wh question rules
 rule(q(Y),[whpr(X^Y),vp(X,[])]).
 rule(ynq(Y),[aux, np(X^Y),vp(X,[])]).
 rule(ynq(Y),[aux,s(Y)]).
@@ -46,14 +61,13 @@ rule(inv_s(Y,[WH]),[aux, np(X^Y),vp(X,[WH])]).
 rule(n(X^and(Y,Z)),[n(X^Y),rc(X^Z,[])]).
 rule(n(X^and(Y,Z)),[n(X^Y),rc(Z,[X])]).
 
-
-
-
-
 %rule(rc(X,[Y]),[rel(_,X,[Y])]).
 rule(rc(Y,[X]),[rel([]),s(Y,[X])]).
 rule(rc(Y),[rel([]),vp(Y)]).
 rule(rc(Y,[]),[rel([]),vp(Y,[])]).
+
+%(VP; ..., W H) Ñ (PV; ...) (PP; ... W H)
+rule(vp(A^B),[pv(A^C),pp(C^B)]).
 
 
 lemma(box,n).
@@ -113,7 +127,11 @@ lemma(eat,tv).
 lemma(drank,tv).
 lemma(ate,tv).     
 lemma(contain,tv).
-lemma(belong,tv).
+
+
+lemma(belong,pv).
+lemma(belongs,pv).
+lemma(belonged,pv).
 
 
 lemma(slowly,adv).
@@ -130,6 +148,7 @@ lemma(who,whpr).
 lemma(where,whpr).
 
 lemma(put,dtv).
+
 
 
 
@@ -172,6 +191,7 @@ lex(n(X^P),Word):- lemma(Word,n), P =.. [Word,X].
 lex(pn((Word^X)^X),Word):-lemma(Word,pn).
 lex(adj((X^P)^X^and(P,Z)),Word):-lemma(Word,adj), Z =.. [Word,X].
 lex(tv((X^Y^Z),[]),Word):-lemma(Word,tv),Z =.. [Word,X,Y].
+lex(pv((X^Y^Z),[]),Word):-lemma(Word,pv),Z =.. [Word,X,Y].
 
 lex(iv(X^P),Word):- lemma(Word,iv),P =.. [Word,X].
 
@@ -179,12 +199,13 @@ lex(whpr((X^P)^X^and(person(X),P)),who).
 
 lex(aux,does).
 lex(aux,did).
+lex(aux,Word):-lemma(Word,aux).
 
 lex(vacp,Word):-lemma(Word,vacp).
+lex(pp(X^_,[X]),Word):-lemma(Word,vacp).
 
-%lex(aux(([]^P)^P),Word):-lemma(Word,aux).
 lex(whpr((X^P)^X^and(thing(X),P)),what).
-lex(n(X^bus(X)),bus).
+
 
 
 lex(rel([]),that).
@@ -209,7 +230,7 @@ lex(dt((X^P)^(X^Q)^forall(X,(imp(P,Q)))),Word):-lemma(Word,dtforall).
 %lex(n(X^P),Word):- uninflected_word(Word,Lemma),P =.. [Lemma,X].
 lex(tv((X^Y^Z),[]),Word):-uninflected_word(Word,Lemma),Z=..[Lemma,X,Y].
 
-uninflected_word(Word,Lemma):-member(A,[es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,_).
+uninflected_word(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,_).
 
 % =======================================
 % Example: Shift-Reduce Parse 
@@ -229,6 +250,9 @@ srparse([Y,X|MoreStack],SentenceRepr,Words):-
 
 srparse([X|MoreStack],SentenceRepr,Words):-
        rule(LHS,[X]),
+       srparse([LHS|MoreStack],SentenceRepr,Words).
+srparse([Z,Y,X|MoreStack],SentenceRepr,Words):-
+       rule(LHS,[X,Y,Z]),
        srparse([LHS|MoreStack],SentenceRepr,Words).
 
 srparse(Stack,SentenceRepr,[Word|Words]):-
