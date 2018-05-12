@@ -4,7 +4,7 @@ rule(n(A^C),[n(A^B),pp((A^B)^C)]).
 rule(n(A),[adj(B^A),n(B)]).
 
 rule(pp(C),[p(A^B^C),np(A^B)]).
-rule(vp(A),[iv(A)]).
+%rule(vp(A),[iv(A)]).
 %rule(vp(A^B),[tv(A^C),np(C^B)]).
 %rule(s(B),[np(A^B),vp(A)]).
 
@@ -15,8 +15,7 @@ rule(s(Y),[np(X^Y),vp(X,[])]).
 
 
 
-%rule(pv(X^Y,[]),[tv(X^Y,[]),vacp]).
-%rule(vp(X^Z,[]),[pv(X^Y,[]),np(Y^Z)]).
+
 %rule(pp(A^B),[vacp,np(A^B)]).
 %rule(vp(X^Y),[
 %rule(vp(X^Z,[]),[pv(X^Y,[]),np(Y^Z)]).
@@ -58,6 +57,11 @@ rule(ynq(Y),[aux, np(X^Y),vp(X,[])]).
 rule(q(Z),[whpr((X^Y)^Z), inv_s(Y,[X])]).
 rule(inv_s(Y,[WH]),[aux, np(X^Y),vp(X,[WH])]).
 
+%lex(whpr((X^P)^exists(X^and(thing(X)),P)),which).
+%rule(q(WH)^^[whpr(A^and(A^N1,A^WH)),n(A^N1),inv_s(Y,[A])]).
+
+rule(q(A,S),[whpr(B^A),n(B),inv_s(S,[B])]).
+%rule(q(Z),[whpr(),n()^,inv_s()]).
 rule(n(X^and(Y,Z)),[n(X^Y),rc(X^Z,[])]).
 rule(n(X^and(Y,Z)),[n(X^Y),rc(Z,[X])]).
 
@@ -66,8 +70,12 @@ rule(rc(Y,[X]),[rel,s(Y,[X])]).
 %rule(rc(Y),[rel([]),vp(Y)]).
 %rule(rc(Y,[]),[rel([]),vp(Y,[])]).
 
+rule(pv(X^Y,[]),[tv(X^Y,[]),vacp]).
+rule(vp(X^Z,[]),[pv(X^Y,[]),np(Y^Z)]).
+
 %(VP; ..., W H) Ñ (PV; ...) (PP; ... W H)
 rule(vp(A^B,[WH]),[pv(A^C,[]),pp(C^B,[WH])]).
+rule(vp(A^B,[]),[pv(A^C,[]),pp(C^B,[])]).
 
 
 lemma(box,n).
@@ -120,11 +128,13 @@ lemma(has,tv).
 lemma(has,tv).
 lemma(punch,tv).
 lemma(drank,tv).
+
 lemma(saw,tv).
 lemma(see,tv).
 lemma(see,iv).
 lemma(eat,tv).
 lemma(drank,tv).
+lemma(drink,tv).
 lemma(ate,tv).     
 lemma(contain,tv).
 
@@ -168,11 +178,17 @@ lemma(was,be).
 lemma(eat,tv).
 
 lemma(on,p).
+lemma(at,p).
 lemma(under,p).
 lemma(on,vacp).  
 lemma(of,vacp).
 lemma(at,vacp).
 lemma(to,vacp).
+
+lemma(that,rel).
+lemma(what,rel).
+lemma(who,rel).
+lemma(which,rel).
 
 
 
@@ -197,20 +213,19 @@ lex(pv((X^Y^Z),[]),Word):-lemma(Word,pv),Z =.. [Word,X,Y].
 
 lex(iv(X^P),Word):- lemma(Word,iv),P =.. [Word,X].
 
-lex(whpr((X^P)^exists(X^and(person(X)),P)),who).
+lex(whpr((X^P)^exists(X,and(person(X)),P)),who).
+lex(whpr((X^P)^exists(X,and(thing(X)),P)),what).
+lex(whpr((X^P)^exists(X,and(thing(X)),P)),which).
 
-lex(aux,does).
-lex(aux,did).
+
 lex(aux,Word):-lemma(Word,aux).
 
 lex(vacp,Word):-lemma(Word,vacp).
-lex(pp(X^P,[X]),Word):-lemma(Word,vacp).
-
-lex(whpr((X^P)^exists(X^and(thing(X)),P)),what).
+lex(pp(X^_,[X]),Word):-lemma(Word,vacp).
 
 
 
-lex(rel,that).
+lex(rel,Word):-lemma(Word,rel).
 
 lex(p((Y^in(X,Y))^Q^(X^P)^and(P,Q)),in).
 
@@ -220,7 +235,7 @@ lex(p((Y^on(X,Y))^Q^(X^P)^and(P,Q)),on).
 
 lex(dt((X^P)^(X^Q)^exists(X,(and(P,Q)))),Word):-lemma(Word,dtexists).
 lex(dt((X^P)^(X^Q)^the(X,(and(P,Q)))),Word):-lemma(Word,dtthe).
-lex(dt((X^P)^(X^Q)^not(X,(and(P,Q)))),Word):-lemma(Word,dtno).
+lex(dt((X^P)^(X^Q)^not(exists(X,(and(P,Q))))),Word):-lemma(Word,dtno).
 lex(dt((X^P)^(X^Q)^forall(X,(imp(P,Q)))),Word):-lemma(Word,dtforall).
 
 
