@@ -8,6 +8,8 @@ rule(pp(C),[p(A^B^C),np(A^B)]).
 %rule(vp(A^B),[tv(A^C),np(C^B)]).
 %rule(s(B),[np(A^B),vp(A)]).
 
+%rule(pp(C[]),[p(A^B^C,[]),np(A^B)]).
+rule(pp(X^Y),[p(X^Z),np(Z^Y)]).
 
 
 
@@ -53,6 +55,14 @@ rule(s(X,[WH]),[vp(X,[WH])]).
 %%wh question rules
 rule(q(Y),[whpr(X^Y),vp(X,[])]).
 rule(ynq(Y),[aux, np(X^Y),vp(X,[])]).
+
+%rule(ynq(Y),[be,rel,np(X^Y),vp(X,[])]).
+rule(np(X),[vacp,np(X)]).
+%is there a sandwich that contains some meat
+rule(ynq(Z),[be,np(_^Z)]).
+%rule(ynq(Y),[be,rel,np(X^Y),pp(X,[Y])]).
+%is there an egg inside the blue box
+rule(ynq(Z),[be,np((X^Y)^Z),pp(X^Y)]).
 %rule(ynq(Y),[aux,s(Y)]).
 rule(q(Z),[whpr((X^Y)^Z), inv_s(Y,[X])]).
 rule(inv_s(Y,[WH]),[aux, np(X^Y),vp(X,[WH])]).
@@ -61,14 +71,17 @@ rule(inv_s(Y,[WH]),[aux, np(X^Y),vp(X,[WH])]).
 %rule(q(WH)^^[whpr(A^and(A^N1,A^WH)),n(A^N1),inv_s(Y,[A])]).
 
 rule(q(A,S),[whpr(B^A),n(B),inv_s(S,[B])]).
+%lex(whpr((X^P)^(X^Q)^exists(X,and(P,Q))),which).
+%rule(q(),[whpr(),n(X^B),inv(S,[X^B])]).
+%rule(q(A,S),[whpr(C^A),n(A^and(B,C)),inv_s(S,[B])]).
 %rule(q(Z),[whpr(),n()^,inv_s()]).
 rule(n(X^and(Y,Z)),[n(X^Y),rc(X^Z,[])]).
 rule(n(X^and(Y,Z)),[n(X^Y),rc(Z,[X])]).
 
-%rule(rc(X,[Y]),[rel(_,X,[Y])]).
+
 rule(rc(Y,[X]),[rel,s(Y,[X])]).
-%rule(rc(Y),[rel([]),vp(Y)]).
-%rule(rc(Y,[]),[rel([]),vp(Y,[])]).
+
+rule(rc(Y,[]),[rel([]),vp(Y,[])]).
 
 rule(pv(X^Y,[]),[tv(X^Y,[]),vacp]).
 rule(vp(X^Z,[]),[pv(X^Y,[]),np(Y^Z)]).
@@ -97,6 +110,18 @@ lemma(banana,n).
 lemma(almond,n).
 lemma(soy,n).
 lemma(boy,n).
+
+lemma(one,num).
+lemma(two,num).
+lemma(three,num).
+lemma(four,num).
+lemma(five,num).
+lemma(six,num).
+lemma(seven,num).
+lemma(eight,num).
+lemma(nine,num).
+lemma(ten,num).
+lemma(zero,num).
 
 
 lemma(sam,pn).
@@ -158,7 +183,7 @@ lemma(who,whpr).
 lemma(where,whpr).
 
 lemma(put,dtv).
-
+%lemma(there,rel).
 
 
 
@@ -180,10 +205,12 @@ lemma(eat,tv).
 lemma(on,p).
 lemma(at,p).
 lemma(under,p).
+lemma(inside,p).
 lemma(on,vacp).  
 lemma(of,vacp).
 lemma(at,vacp).
 lemma(to,vacp).
+lemma(there,vacp).
 
 lemma(that,rel).
 lemma(what,rel).
@@ -192,7 +219,7 @@ lemma(which,rel).
 
 
 
-
+%is,there,an,egg,inside,the,blue,box
 
 % how to define plural and numerals
 
@@ -209,18 +236,26 @@ lex(n(X^P),Word):- lemma(Word,n), P =.. [Word,X].
 lex(pn((Word^X)^X),Word):-lemma(Word,pn).
 lex(adj((X^P)^X^and(P,Z)),Word):-lemma(Word,adj), Z =.. [Word,X].
 lex(tv((X^Y^Z),[]),Word):-lemma(Word,tv),Z =.. [Word,X,Y].
+
 lex(pv((X^Y^Z),[]),Word):-lemma(Word,pv),Z =.. [Word,X,Y].
 
 lex(iv(X^P),Word):- lemma(Word,iv),P =.. [Word,X].
+lex(p(X^Y^Z),Word):-lemma(Word,p),Z =.. [Word,X,Y].
+lex(p((Y^Z)^Q^(X^P)^and(P,Q)),Word):-lemma(Word,p),Z =.. [Word,X,Y].
 
 lex(whpr((X^P)^exists(X,and(person(X)),P)),who).
 lex(whpr((X^P)^exists(X,and(thing(X)),P)),what).
-lex(whpr((X^P)^exists(X,and(thing(X)),P)),which).
+%lex(whpr((X^P)^exists(X,and(thing(X)),P)),which).
+%
+lex(whpr((X^P)^(X^Q)^exists(X,and(P,Q))),which).
+%lex(whpr((X^P)^(X^Q)^q(X,P,Q)),which).
 
 
 lex(aux,Word):-lemma(Word,aux).
+lex(be,Word):-lemma(Word,be).
 
 lex(vacp,Word):-lemma(Word,vacp).
+%lex(p([],Word):-lemma(Word,vacp).
 lex(pp(X^_,[X]),Word):-lemma(Word,vacp).
 
 
@@ -247,7 +282,7 @@ lex(dt((X^P)^(X^Q)^forall(X,(imp(P,Q)))),Word):-lemma(Word,dtforall).
 %lex(n(X^P),Word):- uninflected_word(Word,Lemma),P =.. [Lemma,X].
 lex(tv((X^Y^Z),[]),Word):-uninflected_word(Word,Lemma),Z=..[Lemma,X,Y].
 
-uninflected_word(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,_).
+uninflected_word(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,tv).
 
 % =======================================
 % Example: Shift-Reduce Parse 
