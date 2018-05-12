@@ -54,7 +54,7 @@ rule(s(X,[WH]),[vp(X,[WH])]).
 %%wh question rules
 rule(q(Y),[whpr(X^Y),vp(X,[])]).
 rule(ynq(Y),[aux, np(X^Y),vp(X,[])]).
-rule(ynq(Y),[aux,s(Y)]).
+%rule(ynq(Y),[aux,s(Y)]).
 rule(q(Z),[whpr((X^Y)^Z), inv_s(Y,[X])]).
 rule(inv_s(Y,[WH]),[aux, np(X^Y),vp(X,[WH])]).
 
@@ -62,12 +62,12 @@ rule(n(X^and(Y,Z)),[n(X^Y),rc(X^Z,[])]).
 rule(n(X^and(Y,Z)),[n(X^Y),rc(Z,[X])]).
 
 %rule(rc(X,[Y]),[rel(_,X,[Y])]).
-rule(rc(Y,[X]),[rel([]),s(Y,[X])]).
-rule(rc(Y),[rel([]),vp(Y)]).
-rule(rc(Y,[]),[rel([]),vp(Y,[])]).
+rule(rc(Y,[X]),[rel,s(Y,[X])]).
+%rule(rc(Y),[rel([]),vp(Y)]).
+%rule(rc(Y,[]),[rel([]),vp(Y,[])]).
 
 %(VP; ..., W H) Ñ (PV; ...) (PP; ... W H)
-rule(vp(A^B),[pv(A^C),pp(C^B)]).
+rule(vp(A^B,[WH]),[pv(A^C,[]),pp(C^B,[WH])]).
 
 
 lemma(box,n).
@@ -176,6 +176,8 @@ lemma(to,vacp).
 
 
 
+
+
 % how to define plural and numerals
 
 % ==================================
@@ -195,20 +197,20 @@ lex(pv((X^Y^Z),[]),Word):-lemma(Word,pv),Z =.. [Word,X,Y].
 
 lex(iv(X^P),Word):- lemma(Word,iv),P =.. [Word,X].
 
-lex(whpr((X^P)^X^and(person(X),P)),who).
+lex(whpr((X^P)^exists(X^and(person(X)),P)),who).
 
 lex(aux,does).
 lex(aux,did).
 lex(aux,Word):-lemma(Word,aux).
 
 lex(vacp,Word):-lemma(Word,vacp).
-lex(pp(X^_,[X]),Word):-lemma(Word,vacp).
+lex(pp(X^P,[X]),Word):-lemma(Word,vacp).
 
-lex(whpr((X^P)^X^and(thing(X),P)),what).
+lex(whpr((X^P)^exists(X^and(thing(X)),P)),what).
 
 
 
-lex(rel([]),that).
+lex(rel,that).
 
 lex(p((Y^in(X,Y))^Q^(X^P)^and(P,Q)),in).
 
