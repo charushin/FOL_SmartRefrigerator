@@ -24,7 +24,7 @@ rule(s(Y),[np(X^Y),vp(X,[])]).
 %(VP; ..., W H) Ñ (PV; ...) (PP; ... W H)
 
 
-rule(vp(X^W^Z),[dtv(X^Y^Y1),np(Y^W),np(Y1^Z)]).
+
 rule(vp(X^W),[vp(X^Y),pp(Y^W)]).
 
 rule(vp(X^W),[sv(X^Y),s(Y^W)]).
@@ -47,13 +47,23 @@ rule(tv(Y^P,[X]),[tv(X^Y^P,[])]).
 rule(vp(X^K,[]),[tv((X^Y),[]),np(Y^K)]).
 rule(vp(X,WH),[iv(X,WH)]).
 rule(s(Y,WH),[np(X^Y),vp(X,WH)]).
+%Ditransitive
+%rule(vp(X^W^Z,[]),[dtv(X^Y^Y1,[]),np(Y^W),np(Y1^Z)]).
 
 %New Verbal Rules
 rule(vp(K,[WH]),[tv(Y,[WH]),np(Y^K)]).
 rule(s(X,[WH]),[vp(X,[WH])]).
 
+rule(vp(X^(W^Z),[]),[dtv(X^Y^Y1,[]),np(Y^W),np(Y1^Z)]).
+rule(vp(Y^Z,[]),[dtv(A^B,[]),np(A^Y),np(B^Z)]).
+rule(vp(X^W^Z,[]),[dtv(X^Y^Y1,[]),np(Y^W),np(Y1^Z)]).
+rule(vp(X^W^Z,[WH]),[dtv(X^(Y^Y1),[WH]),np(Y^W),np(Y1^Z)]).
+%Ditransitive Verbs
+rule(vp((Y^Z),[WH]),[dtv(A^B,[WH]),np(A^Y),np(B^Z)]).
+
 %%wh question rules
 rule(q(Y),[whpr(X^Y),vp(X,[])]).
+rule(q(Y^Z),[whpr(X^Y),vp(X^Z,[])]).
 rule(ynq(Y),[aux, np(X^Y),vp(X,[])]).
 
 %rule(ynq(Y),[be,rel,np(X^Y),vp(X,[])]).
@@ -65,6 +75,7 @@ rule(ynq(Z),[be,np(_^Z)]).
 rule(ynq(Z),[be,np((X^Y)^Z),pp(X^Y)]).
 %rule(ynq(Y),[aux,s(Y)]).
 rule(q(Z),[whpr((X^Y)^Z), inv_s(Y,[X])]).
+
 rule(inv_s(Y,[WH]),[aux, np(X^Y),vp(X,[WH])]).
 
 %lex(whpr((X^P)^exists(X^and(thing(X)),P)),which).
@@ -235,7 +246,9 @@ lex(pn((sue^X)^X),sue).
 lex(n(X^P),Word):- lemma(Word,n), P =.. [Word,X].
 lex(pn((Word^X)^X),Word):-lemma(Word,pn).
 lex(adj((X^P)^X^and(P,Z)),Word):-lemma(Word,adj), Z =.. [Word,X].
+lex(adj((X^P)^X^and(P,Z)),Word):-lemma(Word,num), Z =.. [Word,X].
 lex(tv((X^Y^Z),[]),Word):-lemma(Word,tv),Z =.. [Word,X,Y].
+lex(dtv((X^Y^Z^W),[]),Word):-lemma(Word,dtv),W =.. [Word,X,Y,Z].
 
 lex(pv((X^Y^Z),[]),Word):-lemma(Word,pv),Z =.. [Word,X,Y].
 
@@ -268,10 +281,11 @@ lex(p((Y^on(X,Y))^Q^(X^P)^and(P,Q)),on).
 
 
 
-lex(dt((X^P)^(X^Q)^exists(X,(and(P,Q)))),Word):-lemma(Word,dtexists).
-lex(dt((X^P)^(X^Q)^the(X,(and(P,Q)))),Word):-lemma(Word,dtthe).
-lex(dt((X^P)^(X^Q)^not(exists(X,(and(P,Q))))),Word):-lemma(Word,dtno).
-lex(dt((X^P)^(X^Q)^forall(X,(imp(P,Q)))),Word):-lemma(Word,dtforall).
+lex(dt((X^P)^(X^Q)^exists(X,and(P,Q))),Word):-lemma(Word,dtexists).
+lex(dt((X^P)^(X^Q)^the(X,and(P,Q))),Word):-lemma(Word,dtthe).
+lex(dt((X^P)^(X^Q)^not(exists(X,and(P,Q)))),Word):-lemma(Word,dtno).
+lex(dt((X^P)^(X^Q)^forall(X,imp(P,Q))),Word):-lemma(Word,dtforall).
+%lex(dt((X^P)^(X^Q)^forall(X,imp(P,Q))),every).
 
 
 
@@ -279,9 +293,10 @@ lex(dt((X^P)^(X^Q)^forall(X,(imp(P,Q)))),Word):-lemma(Word,dtforall).
 
 %lex(tv((X^Y^Z),[]),Word):-name(Word,Word1),prefix(W,Word1),name(W1,W),lemma(W1,tv),Z =.. [W1,X,Y].
 
-%lex(n(X^P),Word):- uninflected_word(Word,Lemma),P =.. [Lemma,X].
+lex(n(X^P),Word):- uninflected_noun(Word,Lemma),P =.. [Lemma,X].
 lex(tv((X^Y^Z),[]),Word):-uninflected_word(Word,Lemma),Z=..[Lemma,X,Y].
 
+uninflected_noun(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,n).
 uninflected_word(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,tv).
 
 % =======================================
