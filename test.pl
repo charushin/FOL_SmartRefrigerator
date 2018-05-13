@@ -54,12 +54,14 @@ rule(s(Y,WH),[np(X^Y),vp(X,WH)]).
 rule(vp(K,[WH]),[tv(Y,[WH]),np(Y^K)]).
 rule(s(X,[WH]),[vp(X,[WH])]).
 
-rule(vp(X^(W^Z),[]),[dtv(X^Y^Y1,[]),np(Y^W),np(Y1^Z)]).
-rule(vp(Y^Z,[]),[dtv(A^B,[]),np(A^Y),np(B^Z)]).
-rule(vp(X^W^Z,[]),[dtv(X^Y^Y1,[]),np(Y^W),np(Y1^Z)]).
-rule(vp(X^W^Z,[WH]),[dtv(X^(Y^Y1),[WH]),np(Y^W),np(Y1^Z)]).
+%rule(vp(X^(W^Z),[]),[dtv(X^Y^Y1,[]),np(Y^W),np(Y1^Z)]).
+
+rule(vp(X^A,[]),[dtv(X^Y^Z^W,[]),np((Y^B)^A),np((Z^W)^B)]).
+%rule(vp(Y^Z,[]),[dtv(A^B,[]),np(A^Y),np(B^Z)]).
+%rule(vp(X^W^Z,[]),[dtv(X^Y^Y1,[]),np(Y^W),np(Y1^Z)]).
+%rule(vp(X^W^Z,[WH]),[dtv(X^(Y^Y1),[WH]),np(Y^W),np(Y1^Z)]).
 %Ditransitive Verbs
-rule(vp((Y^Z),[WH]),[dtv(A^B,[WH]),np(A^Y),np(B^Z)]).
+%rule(vp((Y^Z),[WH]),[dtv(A^B,[WH]),np(A^Y),np(B^Z)]).
 
 %%wh question rules
 rule(q(Y),[whpr(X^Y),vp(X,[])]).
@@ -301,6 +303,7 @@ lex(num((X^P)^(X^Q)^Z),Word):-lemma(Word,num),Z=.. [Word,X,and(P,Q)].
 lex(n(X^P),Word):- uninflected_noun(Word,Lemma),P =.. [Lemma,X].
 lex(tv((X^Y^Z),[]),Word):-uninflected_word(Word,Lemma),Z=..[Lemma,X,Y].
 lex(pv((X^Y^Z),[]),Word):-uninflected_pv(Word,Lemma),Z=..[Lemma,X,Y].
+
 
 uninflected_noun(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,n).
 uninflected_word(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,tv).
