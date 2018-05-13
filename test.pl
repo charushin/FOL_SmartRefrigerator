@@ -549,5 +549,35 @@ sat(G,Rel,G):-
 
 
 
+% ===========================================================
+%  Respond
+%  For each input type, react appropriately.
+% ===========================================================
+
+% Declarative true in the model
+respond(Evaluation) :- 
+    Evaluation = [true_in_the_model], 
+    write('That is correct'),!.
+
+% Declarative false in the model
+respond(Evaluation) :- 
+    Evaluation = [not_true_in_the_model],  
+    write('That is not correct'),!.
+
+% Yes-No interrogative true in the model
+respond(Evaluation) :- 
+    Evaluation = [yes_to_question],     
+    write('yes').
+
+% Yes-No interrogative false in the model   
+respond(Evaluation) :- 
+    Evaluation = [no_to_question],      
+    write('no').
+
+% wh-interrogative true in the model
+% ...             
+
+% wh-interrogative false in the model
+% ...             
 
 
