@@ -14,7 +14,7 @@ rule(pp(X^Y),[p(X^Z),np(Z^Y)]).
 
 
 rule(s(Y),[np(X^Y),vp(X,[])]).
-
+rule(np(B),[num(A^B),n(A)]).
 
 
 
@@ -30,7 +30,7 @@ rule(vp(X^W),[vp(X^Y),pp(Y^W)]).
 rule(vp(X^W),[sv(X^Y),s(Y^W)]).
 rule(np(X),[prp(X)]).
 
-rule(np((X^P)^exists(X,(and(P,Q)))),[n(X^Q)]).
+rule(np((X^P)^exists(X,(and(Q,P)))),[n(X^Q)]).
 
 rule(q(Y),[whpr(X^Y),vp(X)]).
 rule(q(X),[whpr(X^Y),aux([]),vp(Y)]).
@@ -176,9 +176,6 @@ lemma(contain,tv).
 
 
 lemma(belong,pv).
-lemma(belongs,pv).
-lemma(belonged,pv).
-
 
 lemma(slowly,adv).
 lemma(quickly,adv).
@@ -206,6 +203,8 @@ lemma(each,dtforall).
 lemma(all,dtforall).
 lemma(every,dtforall).
 lemma(no,dtno).
+lemma(not,dtno).
+
 
 lemma(is,be).
 lemma(are,be).
@@ -246,7 +245,7 @@ lex(pn((sue^X)^X),sue).
 lex(n(X^P),Word):- lemma(Word,n), P =.. [Word,X].
 lex(pn((Word^X)^X),Word):-lemma(Word,pn).
 lex(adj((X^P)^X^and(P,Z)),Word):-lemma(Word,adj), Z =.. [Word,X].
-lex(adj((X^P)^X^and(P,Z)),Word):-lemma(Word,num), Z =.. [Word,X].
+%lex(adj((X^P)^X^and(P,Z)),Word):-lemma(Word,num), Z =.. [Word,X].
 lex(tv((X^Y^Z),[]),Word):-lemma(Word,tv),Z =.. [Word,X,Y].
 lex(dtv((X^Y^Z^W),[]),Word):-lemma(Word,dtv),W =.. [Word,X,Y,Z].
 
@@ -258,6 +257,9 @@ lex(p((Y^Z)^Q^(X^P)^and(P,Q)),Word):-lemma(Word,p),Z =.. [Word,X,Y].
 
 lex(whpr((X^P)^exists(X,and(person(X)),P)),who).
 lex(whpr((X^P)^exists(X,and(thing(X)),P)),what).
+
+lex(whpr((X^P)^X,and(person(X),P)),who).
+lex(whpr((X^P)^X,and(thing(X),P)),what).
 %lex(whpr((X^P)^exists(X,and(thing(X)),P)),which).
 %
 lex(whpr((X^P)^(X^Q)^exists(X,and(P,Q))),which).
@@ -285,6 +287,9 @@ lex(dt((X^P)^(X^Q)^exists(X,and(P,Q))),Word):-lemma(Word,dtexists).
 lex(dt((X^P)^(X^Q)^the(X,and(P,Q))),Word):-lemma(Word,dtthe).
 lex(dt((X^P)^(X^Q)^not(exists(X,and(P,Q)))),Word):-lemma(Word,dtno).
 lex(dt((X^P)^(X^Q)^forall(X,imp(P,Q))),Word):-lemma(Word,dtforall).
+
+lex(num((X^P)^(X^Q)^Z),Word):-lemma(Word,num),Z=.. [Word,X,and(P,Q)].
+
 %lex(dt((X^P)^(X^Q)^forall(X,imp(P,Q))),every).
 
 
@@ -295,9 +300,11 @@ lex(dt((X^P)^(X^Q)^forall(X,imp(P,Q))),Word):-lemma(Word,dtforall).
 
 lex(n(X^P),Word):- uninflected_noun(Word,Lemma),P =.. [Lemma,X].
 lex(tv((X^Y^Z),[]),Word):-uninflected_word(Word,Lemma),Z=..[Lemma,X,Y].
+lex(pv((X^Y^Z),[]),Word):-uninflected_pv(Word,Lemma),Z=..[Lemma,X,Y].
 
 uninflected_noun(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,n).
 uninflected_word(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,tv).
+uninflected_pv(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,pv).
 
 % =======================================
 % Example: Shift-Reduce Parse 
