@@ -4,9 +4,6 @@ rule(n(A^C),[n(A^B),pp((A^B)^C)]).
 rule(n(A),[adj(B^A),n(B)]).
 
 rule(pp(C),[p(A^B^C),np(A^B)]).
-%rule(vp(A),[iv(A)]).
-%rule(vp(A^B),[tv(A^C),np(C^B)]).
-%rule(s(B),[np(A^B),vp(A)]).
 
 %rule(pp(C[]),[p(A^B^C,[]),np(A^B)]).
 rule(pp(X^Y),[p(X^Z),np(Z^Y)]).
@@ -48,20 +45,16 @@ rule(vp(X^K,[]),[tv((X^Y),[]),np(Y^K)]).
 rule(vp(X,WH),[iv(X,WH)]).
 rule(s(Y,WH),[np(X^Y),vp(X,WH)]).
 %Ditransitive
-%rule(vp(X^W^Z,[]),[dtv(X^Y^Y1,[]),np(Y^W),np(Y1^Z)]).
 
 %New Verbal Rules
 rule(vp(K,[WH]),[tv(Y,[WH]),np(Y^K)]).
 rule(s(X,[WH]),[vp(X,[WH])]).
 
-%rule(vp(X^(W^Z),[]),[dtv(X^Y^Y1,[]),np(Y^W),np(Y1^Z)]).
 
+% Rule for Ditransitive verb
+% VP -> DTV NP NP
 rule(vp(X^A,[]),[dtv(X^Y^Z^W,[]),np((Y^B)^A),np((Z^W)^B)]).
-%rule(vp(Y^Z,[]),[dtv(A^B,[]),np(A^Y),np(B^Z)]).
-%rule(vp(X^W^Z,[]),[dtv(X^Y^Y1,[]),np(Y^W),np(Y1^Z)]).
-%rule(vp(X^W^Z,[WH]),[dtv(X^(Y^Y1),[WH]),np(Y^W),np(Y1^Z)]).
-%Ditransitive Verbs
-%rule(vp((Y^Z),[WH]),[dtv(A^B,[WH]),np(A^Y),np(B^Z)]).
+
 
 %%wh question rules
 rule(q(Y),[whpr(X^Y),vp(X,[])]).
@@ -257,11 +250,9 @@ lex(iv(X^P),Word):- lemma(Word,iv),P =.. [Word,X].
 lex(p(X^Y^Z),Word):-lemma(Word,p),Z =.. [Word,X,Y].
 lex(p((Y^Z)^Q^(X^P)^and(P,Q)),Word):-lemma(Word,p),Z =.. [Word,X,Y].
 
-lex(whpr((X^P)^exists(X,and(person(X)),P)),who).
-lex(whpr((X^P)^exists(X,and(thing(X)),P)),what).
+lex(whpr((X^P)^exists(X,and(person(X),P))),who).
+lex(whpr((X^P)^exists(X,and(thing(X),P))),what).
 
-lex(whpr((X^P)^X,and(person(X),P)),who).
-lex(whpr((X^P)^X,and(thing(X),P)),what).
 %lex(whpr((X^P)^exists(X,and(thing(X)),P)),which).
 %
 lex(whpr((X^P)^(X^Q)^exists(X,and(P,Q))),which).
