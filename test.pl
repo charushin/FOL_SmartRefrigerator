@@ -303,7 +303,8 @@ uninflected_pv(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word)
 
 
 
-
+chat:-
+ repeat,
    readinput(Input),
    process(Input), 
   (Input = [bye| _] ),!.
