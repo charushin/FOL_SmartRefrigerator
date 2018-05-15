@@ -63,11 +63,12 @@ rule(ynq(Y),[aux, np(X^Y),vp(X,[])]).
 
 %rule(ynq(Y),[be,rel,np(X^Y),vp(X,[])]).
 rule(np(X),[vacp,np(X)]).
+rule(np(X),[rel,np(X)]).
 %is there a sandwich that contains some meat
 rule(ynq(Z),[be,np(_^Z)]).
 %rule(ynq(Y),[be,rel,np(X^Y),pp(X,[Y])]).
 %is there an egg inside the blue box
-rule(ynq(Z),[be,np((X^Y)^Z),pp(X^Y)]).
+rule(ynq(Z),[be,np(X^Z),pp(X)]).
 %rule(ynq(Y),[aux,s(Y)]).
 rule(q(Z),[whpr((X^Y)^Z), inv_s(Y,[X])]).
 
@@ -76,7 +77,7 @@ rule(inv_s(Y,[WH]),[aux, np(X^Y),vp(X,[WH])]).
 %lex(whpr((X^P)^exists(X^and(thing(X)),P)),which).
 %rule(q(WH)^^[whpr(A^and(A^N1,A^WH)),n(A^N1),inv_s(Y,[A])]).
 
-rule(q(A,S),[whpr(B^A),n(B),inv_s(S,[B])]).
+rule(q(A^S),[whpr(B^A),n(B),inv_s(S,[B])]).
 %lex(whpr((X^P)^(X^Q)^exists(X,and(P,Q))),which).
 %rule(q(),[whpr(),n(X^B),inv(S,[X^B])]).
 %rule(q(A,S),[whpr(C^A),n(A^and(B,C)),inv_s(S,[B])]).
@@ -86,11 +87,13 @@ rule(n(X^and(Y,Z)),[n(X^Y),rc(Z,[X])]).
 
 
 rule(rc(Y,[X]),[rel,s(Y,[X])]).
-
+rule(rc(Y,[WH]),[rel([]),vp(Y,[WH])]).
 rule(rc(Y,[]),[rel([]),vp(Y,[])]).
 
-rule(pv(X^Y,[]),[tv(X^Y,[]),vacp]).
-rule(vp(X^Z,[]),[pv(X^Y,[]),np(Y^Z)]).
+
+%rule(pv(X,[]),[tv(X,[]),vacp]).
+%rule(vp(K,[WH]),[tv(Y,[WH]),np(Y^K)]).
+%rule(vp(K,[WH]),[pv(Y,[WH]),np(Y^K)]).
 
 %(VP; ..., W H) Ñ (PV; ...) (PP; ... W H)
 rule(vp(A^B,[WH]),[pv(A^C,[]),pp(C^B,[WH])]).
@@ -168,6 +171,7 @@ lemma(drank,tv).
 lemma(drink,tv).
 lemma(ate,tv).     
 lemma(contain,tv).
+lemma(belong,tv).
 
 
 lemma(belong,pv).
@@ -186,7 +190,7 @@ lemma(who,whpr).
 lemma(where,whpr).
 
 lemma(put,dtv).
-%lemma(there,rel).
+lemma(there,rel).
 
 
 
@@ -300,61 +304,16 @@ uninflected_noun(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Wor
 uninflected_word(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,tv).
 uninflected_pv(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,pv).
 
-
-
-
-chat:-
- repeat,
-   readinput(Input),
-   process(Input), 
-  (Input = [bye| _] ),!.
-  
-
-% ===========================================================
-% Read input:
-% 1. Read char string from keyboard. 
-% 2. Convert char string to atom char list.
-% 3. Convert char list to lower case.
-% 4. Tokenize (based on spaces).
-% ===========================================================
-
-readinput(TokenList):-
-   read_line_to_codes(user_input,InputString),
-   string_to_atom(InputString,CharList),
-   string_lower(CharList,LoweredCharList),
-   tokenize_atom(LoweredCharList,TokenList).
-
-
-% ===========================================================
-%  Process tokenized input
-% 1. Parse morphology and syntax, to obtain semantic representation
-% 2. Evaluate input in the model
-% If input starts with "bye" terminate.
-% ===========================================================
-
-process(Input):-
-  parse(Input,SemanticRepresentation),
-  modelchecker(SemanticRepresentation,Evaluation),
-  respond(Evaluation),!,
-  nl,nl.
-  
-process([bye|_]):-
-   write('> bye!').
-
-
 % =======================================
 % Example: Shift-Reduce Parse 
 % =======================================
 
-parse(Sentence, SentenceRepr):-
+sr_parse(Sentence, SentenceRepr):-
         srparse([],SentenceRepr,Sentence).
  
-parse(X,X,[]).
+sr_parse(X,X,[]).
 srparse([X],X,[]):-
   numbervars(X,0,_).
-
-
-
 
 
 srparse([Y,X|MoreStack],SentenceRepr,Words):-
@@ -371,6 +330,7 @@ srparse([Z,Y,X|MoreStack],SentenceRepr,Words):-
 srparse(Stack,SentenceRepr,[Word|Words]):-
         lex(X,Word),
         srparse([X|Stack],SentenceRepr,Words).
+
 
 
 
