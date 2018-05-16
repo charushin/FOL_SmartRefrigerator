@@ -291,35 +291,7 @@ uninflected_noun(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Wor
 uninflected_verb(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,tv).
 uninflected_pv(Word,Lemma):-member(A,['',es,ed,s,ing]),atom_concat(Lemma,A,Word),lemma(Lemma,pv).
 
-% =======================================
-% Example: Shift-Reduce Parse 
-% =======================================
 
-sr_parse(Sentence, SentenceRepr):-
-        srparse([],SentenceRepr,Sentence).
- 
-sr_parse(X,X,[]).
-srparse([X],X,[]):-
-  numbervars(X,0,_).
-
-
-srparse([Y,X|MoreStack],SentenceRepr,Words):-
-       rule(LHS,[X,Y]),
-       srparse([LHS|MoreStack],SentenceRepr,Words).
-
-srparse([X|MoreStack],SentenceRepr,Words):-
-       rule(LHS,[X]),
-       srparse([LHS|MoreStack],SentenceRepr,Words).
-srparse([Z,Y,X|MoreStack],SentenceRepr,Words):-
-       rule(LHS,[X,Y,Z]),
-       srparse([LHS|MoreStack],SentenceRepr,Words).
-
-srparse(Stack,SentenceRepr,[Word|Words]):-
-        lex(X,Word),
-        srparse([X|Stack],SentenceRepr,Words).
-
-
-%Execution Examples - Parsing
 
 %sr_parse([every,blue,container,on,the,top,shelf,contains,a,sandwich,that,has,no,meat],X).
 %X = s(forall(A, imp(and(and(container(A), blue(A)), the(B, and(and(shelf(B), top(B)), on(A, B)))), exists(C, and(and(sandwich(C), not(exists(D, and(meat(D), has(C, D))))), contain(A, C))))), [])
@@ -369,3 +341,351 @@ srparse(Stack,SentenceRepr,[Word|Words]):-
 
 %Not parsing
 %is,there,a,sandwich,that,does,not,contain,meat
+
+
+% ===========================================================
+% Main loop:
+% 1. Repeat "input-response" cycle until input starts with "bye"
+%    Each "input-response" cycle consists of:
+%     1.1 Reading an input string and convert it to a tokenized list
+%     1.2 Processing tokenized list
+% ===========================================================
+
+chat:-
+ repeat,
+   readinput(Input),
+   process(Input), 
+  (Input = [bye| _] ),!.
+  
+
+% ===========================================================
+% Read input:
+% 1. Read char string from keyboard. 
+% 2. Convert char string to atom char list.
+% 3. Convert char list to lower case.
+% 4. Tokenize (based on spaces).
+% ===========================================================
+
+readinput(TokenList):-
+   read_line_to_codes(user_input,InputString),
+   string_to_atom(InputString,CharList),
+   string_lower(CharList,LoweredCharList),
+   tokenize_atom(LoweredCharList,TokenList).
+
+
+% ===========================================================
+%  Process tokenized input
+% 1. Parse morphology and syntax, to obtain semantic representation
+% 2. Evaluate input in the model
+% If input starts with "bye" terminate.
+% ===========================================================
+
+process(Input):-
+  parse(Input,SemanticRepresentation),
+  modelchecker(SemanticRepresentation,Evaluation),
+  respond(Evaluation),!,
+  nl,nl.
+  
+process([bye|_]):-
+   write('> bye!').
+
+
+% ===========================================================
+%  Parse:
+% 1. Morphologically parse each token and tag it.
+% 2. Add semantic representation to each tagged token
+% 3. Obtain FOL representation for input sentence
+% ===========================================================
+
+
+
+% =======================================
+% Shift-Reduce Parse 
+% =======================================
+
+parse(Sentence, SentenceRepr):-
+        srparse([],SentenceRepr,Sentence).
+ 
+srparse([X],X,[]).
+
+
+srparse([Y,X|MoreStack],SentenceRepr,Words):-
+       rule(LHS,[X,Y]),
+       srparse([LHS|MoreStack],SentenceRepr,Words).
+
+srparse([X|MoreStack],SentenceRepr,Words):-
+       rule(LHS,[X]),
+       srparse([LHS|MoreStack],SentenceRepr,Words).
+srparse([Z,Y,X|MoreStack],SentenceRepr,Words):-
+       rule(LHS,[X,Y,Z]),
+       srparse([LHS|MoreStack],SentenceRepr,Words).
+
+srparse(Stack,SentenceRepr,[Word|Words]):-
+        lex(X,Word),
+        srparse([X|Stack],SentenceRepr,Words).
+
+
+% ==================================================
+% A simple model
+% ==================================================
+
+model([a,b,c,p,f,g],
+           [
+           [empty,[c]],
+           [box,[a,c]],
+           [thing,[a,b,c,p]],
+           [good,[b]],
+           [ham,[b]],
+           [egg,[f,g]],
+           [popsicle,[p]],
+           [contain, [[a,b],[c,b],[a,f],[a,g]]],
+           [of,[[c,p]]],
+           [in,[[f,a],[g,a]]]
+           ]).
+
+
+
+
+
+% ==================================================
+% Function i
+% Determines the value of a variable/constant in an assignment G
+% ==================================================
+
+i(Var,G,Value):- 
+    var(Var),
+    member([Var2,Value],G), 
+    Var == Var2.   
+
+i(C,_,Value):- 
+   nonvar(C),
+   f(C,Value).
+
+
+% ==================================================
+% Function F
+% Determines if a value is in the denotation of a Predicate/Relation
+% ==================================================
+
+f(Symbol,Value):- 
+   model(_,F),
+    member([Symbol,ListOfValues],F), 
+    member(Value,ListOfValues).  
+
+
+% ==================================================
+% Extension of a variable assignment
+% ==================================================
+
+extend(G,X,[ [X,Val] | G]):-
+   model(D,_),
+   member(Val,D).
+
+
+
+
+%=================================================
+%model checker
+%-===========================
+modelchecker(s(SemanticRepresentation), Evaluation):-
+  sat([],s(SemanticRepresentation),Temp)->Evaluation=Temp; Evaluation=[not_true_in_the_model]. 
+  %the last condition is when the sat returns false
+
+modelchecker(ynq(SemanticRepresentation), Evaluation):-
+  sat([],ynq(SemanticRepresentation),Temp)->Evaluation = Temp; Evaluation=[no_to_question]. 
+  %the last condition is when the sat returns false
+
+modelchecker(q(SemanticRepresentation), Evaluation):-
+  sat([], q(SemanticRepresentation), [_,[_,Temp]]),
+  model(_,G),
+  findall(C,(member(C,G)), SecondList),
+  findall(D,(member([D,Second],SecondList), member(Temp,Second), 
+  \+(D==thing)),Evaluation).
+
+%===================================================
+% New rules
+%===================================================
+
+
+%sat rules for assertion of sentences
+
+%calling sat from the start
+sat(G,s(Formula),Result):-
+  sat(G,Formula, Temp), 
+  (Temp==[]-> Result=[not_true_in_the_model];Result=[true_in_the_model]).
+
+sat(G,s(the(X,Formula)),Result):-
+  sat(G,exists(X,Formula), Temp),
+  (Temp==[]-> Result=[not_true_in_the_model];Result=[true_in_the_model]). 
+
+
+%rules for yes or no question
+
+sat(G,ynq(Formula),Result):-
+  sat(G,Formula, Temp), 
+  (Temp==[]-> Result=[no_to_question];Result=[yes_to_question]).
+
+sat(G,ynq(the(X,Formula)),Result):-
+  sat(G,exists(X,Formula), Temp),
+  (Temp==[]-> Result=[no_to_question];Result=[yes_to_question]).
+
+
+sat(G, q(Formula), Result):-
+  sat(G, Formula, Result).
+
+% ==================================================
+% Existential quantifier
+% ==================================================
+
+sat(G1,exists(X,Formula),G3):-
+   extend(G1,X,G2),
+   sat(G2,Formula,G3).
+
+
+% ==================================================
+% Definite quantifier (semantic rather than pragmatic account)
+% ==================================================
+
+ sat(G1,the(X,and(A,B)),G3):-
+   sat(G1,exists(X,and(A,B)),G3),
+   i(X,G3,Value), 
+   \+ ( ( sat(G1,exists(X,A),G2), i(X,G2,Value2), \+(Value = Value2)) ).
+
+
+%======================================
+%additional rule i feel was required
+%======================================
+sat(G, the(X,Formula), Result):-
+  sat(G,exists(X,Formula), Result).
+
+%========================================
+% Rules for numerals
+%========================================
+
+
+%number one
+sat(G1,one(X,Formula),Result):-
+  findall(_, sat(G1, exists(X,Formula), _), Result),
+  length(Result, Length), Length>=1.
+
+%number two
+sat(G1,two(X,Formula),Result):-
+  findall(_, sat(G1, exists(X,Formula), _), Result),
+  length(Result, Length), Length>=2.
+
+%number three
+sat(G1,two(X,Formula),Result):-
+  findall(_, sat(G1, exists(X,Formula), _), Result),
+  length(Result, Length), Length>=3.
+
+%number four
+sat(G1,two(X,Formula),Result):-
+  findall(_, sat(G1, exists(X,Formula), _), Result),
+  length(Result, Length), Length>=4.
+
+%number five
+sat(G1,two(X,Formula),Result):-
+  findall(_, sat(G1, exists(X,Formula), _), Result),
+  length(Result, Length), Length>=5.
+
+% ==================================================
+% Negation 
+% ==================================================
+
+sat(G,not(Formula2),G):-
+   \+ sat(G,Formula2,_).
+
+% ==================================================
+% Universal quantifier
+% ==================================================
+
+sat(G, forall(X,Formula2),G):-
+  sat(G,not( exists(X,not(Formula2) ) ),G).
+
+
+% ==================================================
+% Conjunction
+% ==================================================
+
+sat(G1,and(Formula1,Formula2),G3):-
+  sat(G1,Formula1,G2), 
+  sat(G2,Formula2,G3). 
+
+
+% ==================================================
+% Disjunction
+% ==================================================
+
+
+sat(G1,or(Formula1,Formula2),G2):-
+  ( sat(G1,Formula1,G2) ;
+    sat(G1,Formula2,G2) ).
+
+
+% ==================================================
+% Implication
+% ==================================================
+
+sat(G1,imp(Formula1,Formula2),G2):-
+   sat(G1,or(not(Formula1),Formula2),G2).
+
+
+% ==================================================
+% Predicates
+% ==================================================
+
+sat(G,Predicate,G):-
+   Predicate =.. [P,Var],
+   \+ (P = not),
+   i(Var,G,Value),
+   f(P,Value).
+
+% ==================================================
+% Two-place Relations
+% ==================================================
+
+sat(G,Rel,G):-
+   Rel =.. [R,Var1,Var2],
+   \+ ( member(R,[exists,forall,and,or,imp,the]) ),
+   i(Var1,G,Value1),
+   i(Var2,G,Value2),
+   f(R,[Value1,Value2]).
+
+% ===========================================================
+%  Respond
+%  For each input type, react appropriately.
+% ===========================================================
+
+% Declarative true in the model
+respond(Evaluation) :- 
+    Evaluation = [true_in_the_model], 
+    write('That is correct'),!.
+
+% Declarative false in the model
+respond(Evaluation) :- 
+    Evaluation = [not_true_in_the_model],  
+    write('That is not correct'),!.
+
+% Yes-No interrogative true in the model
+respond(Evaluation) :- 
+    Evaluation = [yes_to_question],     
+    write('yes').
+
+% Yes-No interrogative false in the model   
+respond(Evaluation) :- 
+    Evaluation = [no_to_question],      
+    write('no').
+
+% wh-interrogative true in the model
+% ...     
+respond(Evaluation):-
+  findall(_,(member(Adj,Evaluation),lemma(Adj,adj), write(Adj),write(' ')),_),  
+  findall(_,(member(Noun,Evaluation),lemma(Noun,B),member(B,[n,pn]),write(Noun)),_).       
+
+% wh-interrogative false in the model
+ respond(Evaluation) :- 
+    Evaluation = [i_dont_know],      
+    write('I dont know').
+             
+
+
